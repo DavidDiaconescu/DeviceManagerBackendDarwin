@@ -13,6 +13,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.AssignedUserName,
                 opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.Name : null));
 
+        CreateMap<Device, SearchResultDto>()
+            .ForMember(dest => dest.AssignedUserName,
+                opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.Name : null))
+            .ForMember(dest => dest.Score, opt => opt.Ignore());
+
         CreateMap<CreateDeviceRequest, Device>();
 
         CreateMap<UpdateDeviceRequest, Device>();

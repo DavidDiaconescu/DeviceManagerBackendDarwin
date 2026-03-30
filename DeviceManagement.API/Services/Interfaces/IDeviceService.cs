@@ -13,4 +13,5 @@ public interface IDeviceService
     Task<DeviceDto> AssignDeviceAsync(int deviceId, int userId);
     Task<DeviceDto> UnassignDeviceAsync(int deviceId, int userId);
     Task<DeviceDto> UpdateDescriptionAsync(int id, string description);
+    Task<IEnumerable<SearchResultDto>> SearchAsync(string query);
 }

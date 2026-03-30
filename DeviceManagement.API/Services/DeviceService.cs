@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using AutoMapper;
 using DeviceManagement.API.Models.DTOs;
 using DeviceManagement.API.Models.Entities;
@@ -96,5 +97,47 @@ public class DeviceService : IDeviceService
         device.Description = description;
         var updated = await _deviceRepository.UpdateAsync(device);
         return _mapper.Map<DeviceDto>(updated);
+    }
+
+    public async Task<IEnumerable<SearchResultDto>> SearchAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return Enumerable.Empty<SearchResultDto>();
+
+        var normalized = Regex.Replace(query.Trim().ToLower(), @"[^\w\s]", " ");
+        var tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (tokens.Length == 0)
+            return Enumerable.Empty<SearchResultDto>();
+
+        var devices = await _deviceRepository.GetAllWithUsersAsync();
+
+        var results = new List<SearchResultDto>();
+
+        foreach (var device in devices)
+        {
+            var score = 0;
+            var name = device.Name.ToLower();
+            var manufacturer = device.Manufacturer.ToLower();
+            var processor = device.Processor.ToLower();
+            var ram = device.RAM.ToString();
+
+            foreach (var token in tokens)
+            {
+                if (name.Contains(token))         score += 10;
+                if (manufacturer.Contains(token)) score += 6;
+                if (processor.Contains(token))    score += 4;
+                if (ram.Contains(token))          score += 2;
+            }
+
+            if (score > 0)
+            {
+                var dto = _mapper.Map<SearchResultDto>(device);
+                dto.Score = score;
+                results.Add(dto);
+            }
+        }
+
+        return results.OrderByDescending(r => r.Score);
     }
 }

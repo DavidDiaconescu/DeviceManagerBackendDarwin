@@ -57,4 +57,11 @@ public class DeviceRepository : IDeviceRepository
         return await _context.Devices
             .AnyAsync(d => d.Name == name && d.Manufacturer == manufacturer);
     }
+
+    public async Task<IEnumerable<Device>> GetAllWithUsersAsync()
+    {
+        return await _context.Devices
+            .Include(d => d.AssignedUser)
+            .ToListAsync();
+    }
 }

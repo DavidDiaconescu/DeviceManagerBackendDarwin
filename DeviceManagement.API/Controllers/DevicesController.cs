@@ -4,6 +4,8 @@ using DeviceManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+
+
 namespace DeviceManagement.API.Controllers;
 
 [ApiController]
@@ -18,6 +20,14 @@ public class DevicesController : ControllerBase
         _deviceService = deviceService;
     }
 
+    [AllowAnonymous]
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string query)
+    {
+        var results = await _deviceService.SearchAsync(query ?? string.Empty);
+        return Ok(results);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -25,7 +35,7 @@ public class DevicesController : ControllerBase
         return Ok(devices);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         var device = await _deviceService.GetByIdAsync(id);

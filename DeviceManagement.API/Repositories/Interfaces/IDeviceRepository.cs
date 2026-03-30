@@ -10,4 +10,5 @@ public interface IDeviceRepository
     Task<Device> UpdateAsync(Device device);
     Task DeleteAsync(int id);
     Task<bool> ExistsAsync(string name, string manufacturer);
+    Task<IEnumerable<Device>> GetAllWithUsersAsync();
 }
