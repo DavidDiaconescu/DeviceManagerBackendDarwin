@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceManagement.API", "DeviceManagement.API\DeviceManagement.API.csproj", "{A3FC072E-E1D4-425A-AF62-3DC55778030C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A3FC072E-E1D4-425A-AF62-3DC55778030C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3FC072E-E1D4-425A-AF62-3DC55778030C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3FC072E-E1D4-425A-AF62-3DC55778030C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3FC072E-E1D4-425A-AF62-3DC55778030C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
