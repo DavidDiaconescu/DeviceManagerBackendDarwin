@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DeviceManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,6 @@ public class GenerateDescriptionRequest
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class AiController : ControllerBase
 {
     private readonly IDeviceService _deviceService;
@@ -24,11 +24,39 @@ public class AiController : ControllerBase
     }
 
     [HttpPost("generate-description")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GenerateDescription([FromBody] GenerateDescriptionRequest request)
     {
         var device = await _deviceService.GetByIdAsync(request.DeviceId);
         if (device is null)
             return NotFound($"Device with id {request.DeviceId} was not found.");
+
+        try
+        {
+            var description = await _aiService.GenerateDeviceDescriptionAsync(device);
+            return Ok(description);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpPost("generate-description/{id:int}")]
+    [Authorize]
+    public async Task<IActionResult> GenerateDescriptionForOwner(int id)
+    {
+        var device = await _deviceService.GetByIdAsync(id);
+        if (device is null)
+            return NotFound($"Device with id {id} was not found.");
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null) return Unauthorized();
+        var currentUserId = int.Parse(userIdClaim);
+        var isAdmin = User.FindFirst(ClaimTypes.Role)?.Value == "Admin";
+
+        if (!isAdmin && device.AssignedUserId != currentUserId)
+            return Forbid();
 
         try
         {

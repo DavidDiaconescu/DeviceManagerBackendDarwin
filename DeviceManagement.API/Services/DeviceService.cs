@@ -75,13 +75,27 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(updated);
     }
 
-    public async Task<DeviceDto> UnassignDeviceAsync(int deviceId, int userId)
+    public async Task<DeviceDto> UnassignDeviceAsync(int deviceId, int currentUserId, bool isAdmin)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId)
             ?? throw new KeyNotFoundException($"Device with id {deviceId} was not found.");
 
-        if (device.AssignedUserId != userId)
+        if (!isAdmin && device.AssignedUserId != currentUserId)
             throw new InvalidOperationException("Device not assigned to this user.");
+
+        device.AssignedUserId = null;
+        device.AssignedUser = null;
+        var updated = await _deviceRepository.UpdateAsync(device);
+        return _mapper.Map<DeviceDto>(updated);
+    }
+
+    public async Task<DeviceDto> ForceUnassignAsync(int deviceId)
+    {
+        var device = await _deviceRepository.GetByIdAsync(deviceId)
+            ?? throw new KeyNotFoundException($"Device with id {deviceId} was not found.");
+
+        if (device.AssignedUserId is null)
+            throw new InvalidOperationException("Device is not assigned to anyone.");
 
         device.AssignedUserId = null;
         device.AssignedUser = null;

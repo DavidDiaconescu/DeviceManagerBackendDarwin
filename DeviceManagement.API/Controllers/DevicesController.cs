@@ -4,8 +4,6 @@ using DeviceManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
-
 namespace DeviceManagement.API.Controllers;
 
 [ApiController]
@@ -35,6 +33,7 @@ public class DevicesController : ControllerBase
         return Ok(devices);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -84,16 +83,21 @@ public class DevicesController : ControllerBase
         }
     }
 
-    [HttpPost("{id}/assign")]
-    public async Task<IActionResult> Assign(int id)
+    [HttpPost("{id:int}/assign")]
+    public async Task<IActionResult> Assign(int id, [FromBody] AssignByAdminRequest? request = null)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null) return Unauthorized();
-        var userId = int.Parse(userIdClaim);
+        var currentUserId = int.Parse(userIdClaim);
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        var targetUserId = currentUserId;
+        if (role == "Admin" && request?.UserId is not null)
+            targetUserId = request.UserId.Value;
 
         try
         {
-            var result = await _deviceService.AssignDeviceAsync(id, userId);
+            var result = await _deviceService.AssignDeviceAsync(id, targetUserId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -120,16 +124,36 @@ public class DevicesController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}/unassign")]
+    [HttpDelete("{id:int}/force-unassign")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ForceUnassign(int id)
+    {
+        try
+        {
+            var result = await _deviceService.ForceUnassignAsync(id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("{id:int}/unassign")]
     public async Task<IActionResult> Unassign(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null) return Unauthorized();
-        var userId = int.Parse(userIdClaim);
+        var currentUserId = int.Parse(userIdClaim);
+        var isAdmin = User.FindFirst(ClaimTypes.Role)?.Value == "Admin";
 
         try
         {
-            var result = await _deviceService.UnassignDeviceAsync(id, userId);
+            var result = await _deviceService.UnassignDeviceAsync(id, currentUserId, isAdmin);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
