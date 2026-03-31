@@ -35,4 +35,14 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
         return user;
     }
+
+    public async Task DeleteAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user is null)
+            throw new KeyNotFoundException($"User with id {id} was not found.");
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+    }
 }

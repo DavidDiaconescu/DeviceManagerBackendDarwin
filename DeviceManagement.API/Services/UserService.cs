@@ -27,4 +27,9 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
         return user is null ? null : _mapper.Map<UserDto>(user);
     }
+
+    public async Task DeleteAsync(int id)
+    {
+        await _userRepository.DeleteAsync(id);
+    }
 }
